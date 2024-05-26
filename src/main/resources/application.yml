@@ -1,0 +1,57 @@
+logging:
+  level:
+    io.zenwave360.example: DEBUG
+    org.springframework.security: DEBUG
+#    org.apache.kafka: DEBUG
+spring:
+  security:
+    user:
+      name: user
+      password: password
+      roles: USER
+  jpa.hibernate.ddl-auto: create
+  jpa.open-in-view: false
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    hikari:
+      poolName: Hikari
+      auto-commit: false
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  cloud:
+    stream:
+      bindings:
+        on-customer-event-out-0:
+          destination: customer.events
+          group: customer-address-app
+        on-customer-address-event-out-0:
+          destination: customer.address-events
+          group: customer-address-app
+        do-create-customer-out-0:
+          destination: customer.create
+          group: customer-address-app
+        do-create-customer-in-0:
+          destination: customer.create,customer.create-backoffice
+          group: customer-address-app
+#          dead-letter-queue-error-map: >
+#            {
+#              'jakarta.validation.ValidationException': 'customer.create.validation.errors',
+#              'java.lang.UnsupportedOperationException': 'customer.create.serialization.errors'
+#            }
+#      kafka:
+#        default:
+#          consumer:
+#            enableDlq: true
+

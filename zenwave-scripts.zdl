@@ -1,0 +1,62 @@
+config {
+    title "ZenWave Playground Customer-Address JPA"
+    basePackage "io.zenwave360.example.customer"
+    persistence jpa
+    databaseType postgresql
+    simpleDomainPackaging true
+    specFile "customer-address-relational-one-to-one.zdl"
+//    haltOnFailFormatting false
+
+    // these should match the values of openapi-generator-maven-plugin
+    // used by the OpenAPIControllersPlugin and SpringWebTestClientPlugin
+    openApiApiPackage "{{basePackage}}"
+    openApiModelPackage "{{basePackage}}.dtos"
+    openApiModelNameSuffix DTO
+
+    plugins {
+
+        ZDLToOpenAPIPlugin {
+            idType integer
+            idTypeFormat int64
+            targetFile "src/main/resources/apis/openapi.yml"
+        }
+
+        ZDLToAsyncAPIPlugin {
+            asyncapiVersion v3
+            idType integer
+            idTypeFormat int64
+            targetFile "src/main/resources/apis/asyncapi.yml"
+        }
+
+        BackendApplicationDefaultPlugin {
+            useLombok true
+            includeEmitEventsImplementation true
+            --force // overwite all files
+        }
+
+        OpenAPIControllersPlugin {
+            openapiFile "src/main/resources/apis/openapi.yml"
+            zdlFile "customer-address-relational-one-to-one.zdl"
+        }
+        
+        SpringCloudStreams3AdaptersPlugin {
+            specFile "src/main/resources/apis/asyncapi.yml"
+            zdlFile "customer-address-relational-one-to-one.zdl"
+            adaptersPackage "{{basePackage}}"
+            consumerApiPackage "{{basePackage}}.commands"
+            modelPackage "{{basePackage}}.events.dtos"
+        }
+
+        SpringWebTestClientPlugin {
+            specFile "src/main/resources/apis/openapi.yml"
+            groupBy service
+        }
+
+        SpringWebTestClientPlugin {
+            specFile "src/main/resources/apis/openapi.yml"
+            groupBy businessFlow
+            businessFlowTestName CreateUpdateDeleteCustomerIntegrationTest
+            operationIds createCustomer,updateCustomer,deleteCustomer,getCustomer
+        }
+    }
+}
